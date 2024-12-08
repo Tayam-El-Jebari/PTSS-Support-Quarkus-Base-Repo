@@ -18,15 +18,20 @@ import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenExce
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException
 import org.jboss.resteasy.reactive.ClientWebApplicationException
 import org.ptss.support.core.context.IRequestContextService
+import org.ptss.support.metrics.CustomMetrics
 import org.ptss.support.domain.enums.ErrorCode
 
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 class GlobalExceptionHandler @Inject constructor(
-    private val requestContextService: IRequestContextService
+    private val requestContextService: IRequestContextService,
+    private val customMetrics: CustomMetrics
 ) : ExceptionMapper<Throwable> {
 
     override fun toResponse(exception: Throwable): Response {
+        // Increment the failed requests counter
+        customMetrics.incrementFailedRequests()
+
         val requestId = requestContextService.getCurrentRequestId()
         val path = requestContextService.getCurrentPath()
 
